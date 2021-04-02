@@ -1,0 +1,51 @@
+﻿@model MobileAppImageResizer.Models.ResizeImage
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Resize Image</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="FileName" class="control-label"></label>
+                <input asp-for="FileName" class="form-control" />
+                <span asp-validation-for="FileName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OutputFileName" class="control-label"></label>
+                <input asp-for="OutputFileName" class="form-control" />
+                <span asp-validation-for="OutputFileName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageWidth" class="control-label"></label>
+                <input asp-for="ImageWidth" class="form-control" />
+                <span asp-validation-for="ImageWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IncludeAndroid" />
+                    @Html.DisplayNameFor(model => model.IncludeAndroid)
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IncludeIOS" />
+                    @Html.DisplayNameFor(model => model.IncludeIOS)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Home</a>
+</div>
