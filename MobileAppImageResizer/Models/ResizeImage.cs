@@ -14,6 +14,7 @@ namespace MobileAppImageResizer.Models
         public string OutputFileName { get; set; }
 
         [Required]
+        [DisplayName("Width of Image for App (in pixels)")]
         public int ImageWidth { get; set; }
 
         [DisplayName("Build Android Images")]
