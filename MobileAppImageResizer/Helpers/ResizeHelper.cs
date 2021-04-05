@@ -16,7 +16,7 @@ namespace MobileAppImageResizer.Helpers
         /// xxhdpi      3x
         /// xxxhdpi     4x
         /// </summary>
-        public void CreateAppImages(byte[] imageBytes, string fileName, string outputFileName, int width, bool includeAndroid, bool includeIOS)
+        public string CreateAppImages(byte[] imageBytes, string fileName, string outputFileName, int width, bool includeAndroid, bool includeIOS)
         {
             var dirId = Guid.NewGuid().ToString();
             var userDirectory = $"output/{dirId}";
@@ -39,6 +39,8 @@ namespace MobileAppImageResizer.Helpers
             {
                 ResizeiOSImages(imageBytes, width, fileName, outputFileName, $"{userDirectory}/iOS");
             }
+
+            return userDirectory;
         }
 
         private void ResizeImage(byte[] imageBytes, int width, string outputFileName, string folder)

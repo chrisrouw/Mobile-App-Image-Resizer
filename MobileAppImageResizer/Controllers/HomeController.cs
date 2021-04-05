@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.IO;
+using Ionic.Zip;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MobileAppImageResizer.Helpers;
@@ -19,13 +21,6 @@ namespace MobileAppImageResizer.Controllers
         {
             return View();
         }
-
-        //public IActionResult CreateImages()
-        //{
-        //    var resizeHelper = new ResizeHelper();
-        //    resizeHelper.CreateAppImages("facebook.png", "facebook.png", 36, true, true);
-        //    return RedirectToAction(nameof(Index));
-        //}
 
         public IActionResult Privacy()
         {
@@ -59,12 +54,36 @@ namespace MobileAppImageResizer.Controllers
                 byte[] imageBytes = System.IO.File.ReadAllBytes("Images/" + resizeImage.FileName);
 
                 var resizeHelper = new ResizeHelper();
-                resizeHelper.CreateAppImages(imageBytes, resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                var userDirectory = resizeHelper.CreateAppImages(imageBytes, resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                if (!string.IsNullOrWhiteSpace(userDirectory))
+                {
+                    var zippedFileName = $"{userDirectory}.zip";
+                    ZipAndReturnFiles(userDirectory, zippedFileName);
+
+                    // Download the file
+                }
 
                 return RedirectToAction(nameof(Index));
             }
 
             return View(resizeImage);
+        }
+
+        private void ZipAndReturnFiles(string userDirectory, string fileToCreate)
+        {
+            using (ZipFile zipFile = new ZipFile())
+            {
+                foreach (string folder in Directory.GetDirectories(userDirectory))
+                {
+                    zipFile.AddDirectoryByName(folder);
+
+                    foreach (string filename in Directory.GetFiles(folder))
+                    {
+                        zipFile.AddFile(filename, folder);
+                    }
+                }
+                zipFile.Save(fileToCreate);
+            }
         }
     }
 }
