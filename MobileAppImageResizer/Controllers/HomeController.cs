@@ -63,13 +63,17 @@ namespace MobileAppImageResizer.Controllers
                     // Download the file if it exists
                     if (System.IO.File.Exists(zippedFileName))
                     {
-                        using (FileStream fs = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
+                        var memory = new MemoryStream();
+                        using (var stream = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
                         {
-                            return new FileStreamResult(fs, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
-                            {
-                                FileDownloadName = "images.zip"
-                            };
+                            stream.CopyTo(memory);
                         }
+
+                        memory.Position = 0;
+                        return new FileStreamResult(memory, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
+                        {
+                            FileDownloadName = "images.zip"
+                        };
                     }
                 }
 
