@@ -18,24 +18,26 @@ namespace MobileAppImageResizer.Helpers
         /// </summary>
         public void CreateAppImages(byte[] imageBytes, string fileName, string outputFileName, int width, bool includeAndroid, bool includeIOS)
         {
-            Directory.CreateDirectory("output");
+            var dirId = Guid.NewGuid().ToString();
+            var userDirectory = $"output/{dirId}";
+            Directory.CreateDirectory(userDirectory);
 
             if (includeAndroid)
             {
                 // Reference: https://developer.android.com/training/multiscreen/screendensities
                 // Width is the baseline width (i.e. mdpi)
-                ResizeImage(imageBytes, Convert.ToInt32(width * 0.75), outputFileName, "drawable-ldpi");
-                ResizeImage(imageBytes, width, outputFileName, "drawable-mdpi");
-                ResizeImage(imageBytes, width, outputFileName, "drawable");
-                ResizeImage(imageBytes, Convert.ToInt32(width * 1.5), outputFileName, "drawable-hdpi");
-                ResizeImage(imageBytes, width * 2, outputFileName, "drawable-xhdpi");
-                ResizeImage(imageBytes, width * 3, outputFileName, "drawable-xxhdpi");
-                ResizeImage(imageBytes, width * 4, outputFileName, "drawable-xxxhdpi");
+                ResizeImage(imageBytes, Convert.ToInt32(width * 0.75), outputFileName, $"{userDirectory}/drawable-ldpi");
+                ResizeImage(imageBytes, width, outputFileName, $"{userDirectory}/drawable-mdpi");
+                ResizeImage(imageBytes, width, outputFileName, $"{userDirectory}/drawable");
+                ResizeImage(imageBytes, Convert.ToInt32(width * 1.5), outputFileName, $"{userDirectory}/drawable-hdpi");
+                ResizeImage(imageBytes, width * 2, outputFileName, $"{userDirectory}/drawable-xhdpi");
+                ResizeImage(imageBytes, width * 3, outputFileName, $"{userDirectory}/drawable-xxhdpi");
+                ResizeImage(imageBytes, width * 4, outputFileName, $"{userDirectory}/drawable-xxxhdpi");
             }
 
             if (includeIOS)
             {
-                ResizeiOSImages(imageBytes, width, fileName, outputFileName, "iOS");
+                ResizeiOSImages(imageBytes, width, fileName, outputFileName, $"{userDirectory}/iOS");
             }
         }
 
@@ -43,14 +45,14 @@ namespace MobileAppImageResizer.Helpers
         {
             try
             {
-                Directory.CreateDirectory("output/" + folder);
+                Directory.CreateDirectory(folder);
 
                 using (Image image = Image.Load(imageBytes))
                 {
                     image.Mutate(x => x
                          .Resize(new Size(width, 0)));
 
-                    var fname = Path.Combine(("output/" + folder), outputFileName);
+                    var fname = Path.Combine(folder, outputFileName);
                     image.Save(fname); // Automatic encoder selected based on extension.
                 }
             }
