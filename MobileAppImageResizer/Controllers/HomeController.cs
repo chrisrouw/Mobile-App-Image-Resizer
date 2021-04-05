@@ -60,7 +60,17 @@ namespace MobileAppImageResizer.Controllers
                     var zippedFileName = $"{userDirectory}.zip";
                     ZipAndReturnFiles(userDirectory, zippedFileName);
 
-                    // Download the file
+                    // Download the file if it exists
+                    if (System.IO.File.Exists(zippedFileName))
+                    {
+                        using (FileStream fs = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
+                        {
+                            return new FileStreamResult(fs, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
+                            {
+                                FileDownloadName = "images.zip"
+                            };
+                        }
+                    }
                 }
 
                 return RedirectToAction(nameof(Index));
