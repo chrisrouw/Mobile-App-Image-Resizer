@@ -16,43 +16,45 @@ namespace MobileAppImageResizer.Helpers
         /// xxhdpi      3x
         /// xxxhdpi     4x
         /// </summary>
-        public void CreateAppImages(string fileName, string outputFileName, int width, bool includeAndroid, bool includeIOS)
+        public string CreateAppImages(byte[] imageBytes, string fileName, string outputFileName, int width, bool includeAndroid, bool includeIOS)
         {
-            Directory.CreateDirectory("output");
+            var dirId = Guid.NewGuid().ToString();
+            var userDirectory = $"output/{dirId}";
+            Directory.CreateDirectory(userDirectory);
 
             if (includeAndroid)
             {
                 // Reference: https://developer.android.com/training/multiscreen/screendensities
                 // Width is the baseline width (i.e. mdpi)
-                ResizeImage(Convert.ToInt32(width * 0.75), fileName, outputFileName, "drawable-ldpi");
-                ResizeImage(width, fileName, outputFileName, "drawable-mdpi");
-                ResizeImage(width, fileName, outputFileName, "drawable");
-                ResizeImage(Convert.ToInt32(width * 1.5), fileName, outputFileName, "drawable-hdpi");
-                ResizeImage(width * 2, fileName, outputFileName, "drawable-xhdpi");
-                ResizeImage(width * 3, fileName, outputFileName, "drawable-xxhdpi");
-                ResizeImage(width * 4, fileName, outputFileName, "drawable-xxxhdpi");
+                ResizeImage(imageBytes, Convert.ToInt32(width * 0.75), outputFileName, $"{userDirectory}/drawable-ldpi");
+                ResizeImage(imageBytes, width, outputFileName, $"{userDirectory}/drawable-mdpi");
+                ResizeImage(imageBytes, width, outputFileName, $"{userDirectory}/drawable");
+                ResizeImage(imageBytes, Convert.ToInt32(width * 1.5), outputFileName, $"{userDirectory}/drawable-hdpi");
+                ResizeImage(imageBytes, width * 2, outputFileName, $"{userDirectory}/drawable-xhdpi");
+                ResizeImage(imageBytes, width * 3, outputFileName, $"{userDirectory}/drawable-xxhdpi");
+                ResizeImage(imageBytes, width * 4, outputFileName, $"{userDirectory}/drawable-xxxhdpi");
             }
 
             if (includeIOS)
             {
-                ResizeiOSImages(width, fileName, outputFileName, "iOS");
+                ResizeiOSImages(imageBytes, width, fileName, outputFileName, $"{userDirectory}/iOS");
             }
+
+            return userDirectory;
         }
 
-        private void ResizeImage(int width, string fileName, string outputFileName, string folder)
+        private void ResizeImage(byte[] imageBytes, int width, string outputFileName, string folder)
         {
             try
             {
-                Directory.CreateDirectory("output/" + folder);
+                Directory.CreateDirectory(folder);
 
-                byte[] photoBytes = File.ReadAllBytes("Images/" + fileName);
-
-                using (Image image = Image.Load(photoBytes))
+                using (Image image = Image.Load(imageBytes))
                 {
                     image.Mutate(x => x
                          .Resize(new Size(width, 0)));
 
-                    var fname = Path.Combine(("output/" + folder), outputFileName);
+                    var fname = Path.Combine(folder, outputFileName);
                     image.Save(fname); // Automatic encoder selected based on extension.
                 }
             }
@@ -62,14 +64,14 @@ namespace MobileAppImageResizer.Helpers
             }
         }
 
-        private void ResizeiOSImages(int width, string fileName, string outputFileName, string folder)
+        private void ResizeiOSImages(byte[] imageBytes, int width, string fileName, string outputFileName, string folder)
         {
             var extension = Path.GetExtension(fileName);
             for (int i = 1; i <= 3; i++)
             {
                 var versionExt = i == 1 ? ".png" : "@" + i + "x.png";
                 var fName = outputFileName.Replace(extension, ".png").Replace(".png", versionExt);
-                ResizeImage(width * i, fileName, fName, folder);
+                ResizeImage(imageBytes, width * i, fName, folder);
             }
         }
     }

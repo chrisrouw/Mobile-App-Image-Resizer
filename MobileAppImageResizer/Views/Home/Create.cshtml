@@ -1,0 +1,47 @@
+﻿@model MobileAppImageResizer.Models.ResizeImage
+
+@{
+    ViewData["Title"] = "Create Images";
+}
+
+<h1>Create Images</h1>
+<h4>Upload an image to resize for your mobile app</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="FileName" class="control-label"></label>
+                <input asp-for="FileName" class="form-control" />
+                <span asp-validation-for="FileName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OutputFileName" class="control-label"></label>
+                <input asp-for="OutputFileName" class="form-control" />
+                <span asp-validation-for="OutputFileName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageWidth" class="control-label"></label>
+                <input asp-for="ImageWidth" class="form-control" />
+                <span asp-validation-for="ImageWidth" class="text-danger"></span>
+            </div>
+            <div class="form-group margin-left-20">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IncludeAndroid" />
+                    @Html.DisplayNameFor(model => model.IncludeAndroid)
+                </label>
+            </div>
+            <div class="form-group margin-left-20">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IncludeIOS" />
+                    @Html.DisplayNameFor(model => model.IncludeIOS)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create Images" class="btn btn-primary" />
+                <a asp-action="Index" class="margin-left-10">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

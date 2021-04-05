@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.IO;
+using Ionic.Zip;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MobileAppImageResizer.Helpers;
@@ -20,14 +22,6 @@ namespace MobileAppImageResizer.Controllers
             return View();
         }
 
-        public IActionResult CreateImages()
-        {
-            var resizeHelper = new ResizeHelper();
-            resizeHelper.CreateAppImages("fb.jpg", "fb.png", 200, false, true);
-
-            return RedirectToAction(nameof(Index));
-        }
-
         public IActionResult Privacy()
         {
             return View();
@@ -37,6 +31,73 @@ namespace MobileAppImageResizer.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public IActionResult Create()
+        {
+            return View(new ResizeImage { IncludeAndroid = true, IncludeIOS = true });
+        }
+
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create([Bind("FileName,OutputFileName,ImageWidth,IncludeAndroid,IncludeIOS")] ResizeImage resizeImage)
+        {
+            if (!resizeImage.IncludeIOS && !resizeImage.IncludeAndroid)
+            {
+                ModelState.AddModelError(nameof(ResizeImage.IncludeAndroid), "Android or iOS must be selected");
+            }
+
+            if (ModelState.IsValid)
+            {
+                byte[] imageBytes = System.IO.File.ReadAllBytes("Images/" + resizeImage.FileName);
+
+                var resizeHelper = new ResizeHelper();
+                var userDirectory = resizeHelper.CreateAppImages(imageBytes, resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                if (!string.IsNullOrWhiteSpace(userDirectory))
+                {
+                    var zippedFileName = $"{userDirectory}.zip";
+                    ZipAndReturnFiles(userDirectory, zippedFileName);
+
+                    // Download the file if it exists
+                    if (System.IO.File.Exists(zippedFileName))
+                    {
+                        var memory = new MemoryStream();
+                        using (var stream = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
+                        {
+                            stream.CopyTo(memory);
+                        }
+
+                        memory.Position = 0;
+                        return new FileStreamResult(memory, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
+                        {
+                            FileDownloadName = "images.zip"
+                        };
+                    }
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(resizeImage);
+        }
+
+        private void ZipAndReturnFiles(string userDirectory, string fileToCreate)
+        {
+            using (ZipFile zipFile = new ZipFile())
+            {
+                foreach (string folder in Directory.GetDirectories(userDirectory))
+                {
+                    zipFile.AddDirectoryByName(folder);
+
+                    foreach (string filename in Directory.GetFiles(folder))
+                    {
+                        zipFile.AddFile(filename, folder);
+                    }
+                }
+                zipFile.Save(fileToCreate);
+            }
         }
     }
 }
