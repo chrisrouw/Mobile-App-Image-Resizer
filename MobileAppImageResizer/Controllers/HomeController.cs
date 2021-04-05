@@ -56,8 +56,10 @@ namespace MobileAppImageResizer.Controllers
 
             if (ModelState.IsValid)
             {
+                byte[] imageBytes = System.IO.File.ReadAllBytes("Images/" + resizeImage.FileName);
+
                 var resizeHelper = new ResizeHelper();
-                resizeHelper.CreateAppImages(resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                resizeHelper.CreateAppImages(imageBytes, resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
 
                 return RedirectToAction(nameof(Index));
             }
