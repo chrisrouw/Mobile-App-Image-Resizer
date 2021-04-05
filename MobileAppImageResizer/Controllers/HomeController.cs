@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MobileAppImageResizer.Helpers;
@@ -21,20 +20,12 @@ namespace MobileAppImageResizer.Controllers
             return View();
         }
 
-        public IActionResult CreateImages()
-        {
-            var resizeHelper = new ResizeHelper();
-            resizeHelper.CreateAppImages("facebook.png", "facebook.png", 36, true, true);
-            //resizeHelper.CreateAppImages("logo.png", "logo.png", 200, true, true);
-            //resizeHelper.CreateAppImages("close.png", "close.png", 58, true, true);
-            //resizeHelper.CreateAppImages("wavy_bottom.png", "wavy_bottom.png", 540, false, true);
-            //resizeHelper.CreateAppImages("about_menu.png", "about_menu.png", 111, true, true);
-            //resizeHelper.CreateAppImages("discount_menu.png", "discount_menu.png", 111, true, true);
-            //resizeHelper.CreateAppImages("home_menu.png", "home_menu.png", 111, true, true);
-            //resizeHelper.CreateAppImages("membercard_menu.png", "membercard_menu.png", 111, true, true);
-
-            return RedirectToAction(nameof(Index));
-        }
+        //public IActionResult CreateImages()
+        //{
+        //    var resizeHelper = new ResizeHelper();
+        //    resizeHelper.CreateAppImages("facebook.png", "facebook.png", 36, true, true);
+        //    return RedirectToAction(nameof(Index));
+        //}
 
         public IActionResult Privacy()
         {
@@ -49,9 +40,7 @@ namespace MobileAppImageResizer.Controllers
 
         public IActionResult Create()
         {
-            //var resourceList = await _resourceListService.Get();
-            //ViewData["ResourceListId"] = new SelectList(resourceList, "Id", "Name");
-            return View();
+            return View(new ResizeImage { IncludeAndroid = true, IncludeIOS = true });
         }
 
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
@@ -60,6 +49,11 @@ namespace MobileAppImageResizer.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("FileName,OutputFileName,ImageWidth,IncludeAndroid,IncludeIOS")] ResizeImage resizeImage)
         {
+            if (!resizeImage.IncludeIOS && !resizeImage.IncludeAndroid)
+            {
+                ModelState.AddModelError(nameof(ResizeImage.IncludeAndroid), "Android or iOS must be selected");
+            }
+
             if (ModelState.IsValid)
             {
                 var resizeHelper = new ResizeHelper();
