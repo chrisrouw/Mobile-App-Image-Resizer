@@ -55,6 +55,15 @@ namespace MobileAppImageResizer.Controllers
             {
                 ModelState.AddModelError(nameof(ResizeImage.OutputFileName), "You must upload at least one image");
             }
+            else
+            {
+                var fileToCheck = files[0];
+                var extension = Path.GetExtension(fileToCheck.FileName).ToLower();
+                if (!extension.Contains("png") && !extension.Contains("jpg"))
+                {
+                    ModelState.AddModelError(nameof(ResizeImage.OutputFileName), "File must be JPG or PNG.");
+                }
+            }
 
             if (ModelState.IsValid)
             {
@@ -65,14 +74,19 @@ namespace MobileAppImageResizer.Controllers
                 if (formFile.Length > 0)
                 {
                     var fileName = formFile.FileName;
-                    var filePath = Path.GetTempFileName();
+
+                    var outputFileName = resizeImage.OutputFileName;
+                    if (Path.GetExtension(outputFileName).Length == 0)
+                    {
+                        outputFileName += Path.GetExtension(fileName);
+                    }
 
                     using (var ms = new MemoryStream())
                     {
                         formFile.CopyTo(ms);
                         var imageBytes = ms.ToArray();
 
-                        var userDirectory = resizeHelper.CreateAppImages(imageBytes, fileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                        var userDirectory = resizeHelper.CreateAppImages(imageBytes, fileName, outputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
                         if (!string.IsNullOrWhiteSpace(userDirectory))
                         {
                             var zippedFileName = $"{userDirectory}.zip";
