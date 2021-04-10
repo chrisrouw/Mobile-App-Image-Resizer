@@ -5,22 +5,18 @@ namespace MobileAppImageResizer.Models
 {
     public class ResizeImage
     {
-        [DisplayName("File Name")]
-        [Required]
-        public string FileName { get; set; }
-
-        [DisplayName("Output File Name")]
+        [DisplayName("Output File Name - include the extension (e.g. image.png)")]
         [Required]
         public string OutputFileName { get; set; }
 
         [Required]
-        [DisplayName("Width of Image for App (in pixels)")]
+        [DisplayName("Image Width for use in your mobile app (in pixels)")]
         public int ImageWidth { get; set; }
 
-        [DisplayName("Build Android Images")]
+        [DisplayName("Create Android Images")]
         public bool IncludeAndroid { get; set; }
 
-        [DisplayName("Build iOS Images")]
+        [DisplayName("Create iOS Images")]
         public bool IncludeIOS { get; set; }
     }
 }
