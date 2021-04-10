@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Ionic.Zip;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MobileAppImageResizer.Helpers;
@@ -42,38 +44,70 @@ namespace MobileAppImageResizer.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("FileName,OutputFileName,ImageWidth,IncludeAndroid,IncludeIOS")] ResizeImage resizeImage)
+        public IActionResult Create([Bind("FileName,OutputFileName,ImageWidth,IncludeAndroid,IncludeIOS")] ResizeImage resizeImage, List<IFormFile> files)
         {
             if (!resizeImage.IncludeIOS && !resizeImage.IncludeAndroid)
             {
                 ModelState.AddModelError(nameof(ResizeImage.IncludeAndroid), "Android or iOS must be selected");
             }
 
+            if (files.Count == 0)
+            {
+                ModelState.AddModelError(nameof(ResizeImage.OutputFileName), "You must upload at least one image");
+            }
+            else
+            {
+                var fileToCheck = files[0];
+                var extension = Path.GetExtension(fileToCheck.FileName).ToLower();
+                if (!extension.Contains("png") && !extension.Contains("jpg"))
+                {
+                    ModelState.AddModelError(nameof(ResizeImage.OutputFileName), "File must be JPG or PNG.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                byte[] imageBytes = System.IO.File.ReadAllBytes("Images/" + resizeImage.FileName);
-
                 var resizeHelper = new ResizeHelper();
-                var userDirectory = resizeHelper.CreateAppImages(imageBytes, resizeImage.FileName, resizeImage.OutputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
-                if (!string.IsNullOrWhiteSpace(userDirectory))
+
+                // Should only be one file
+                var formFile = files[0];
+                if (formFile.Length > 0)
                 {
-                    var zippedFileName = $"{userDirectory}.zip";
-                    ZipAndReturnFiles(userDirectory, zippedFileName);
+                    var fileName = formFile.FileName;
 
-                    // Download the file if it exists
-                    if (System.IO.File.Exists(zippedFileName))
+                    var outputFileName = resizeImage.OutputFileName;
+                    if (Path.GetExtension(outputFileName).Length == 0)
                     {
-                        var memory = new MemoryStream();
-                        using (var stream = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
-                        {
-                            stream.CopyTo(memory);
-                        }
+                        outputFileName += Path.GetExtension(fileName);
+                    }
 
-                        memory.Position = 0;
-                        return new FileStreamResult(memory, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
+                    using (var ms = new MemoryStream())
+                    {
+                        formFile.CopyTo(ms);
+                        var imageBytes = ms.ToArray();
+
+                        var userDirectory = resizeHelper.CreateAppImages(imageBytes, fileName, outputFileName, resizeImage.ImageWidth, resizeImage.IncludeAndroid, resizeImage.IncludeIOS);
+                        if (!string.IsNullOrWhiteSpace(userDirectory))
                         {
-                            FileDownloadName = "images.zip"
-                        };
+                            var zippedFileName = $"{userDirectory}.zip";
+                            ZipAndReturnFiles(userDirectory, zippedFileName);
+
+                            // Download the file if it exists
+                            if (System.IO.File.Exists(zippedFileName))
+                            {
+                                var memory = new MemoryStream();
+                                using (var stream = new FileStream(zippedFileName, FileMode.Open, FileAccess.Read))
+                                {
+                                    stream.CopyTo(memory);
+                                }
+
+                                memory.Position = 0;
+                                return new FileStreamResult(memory, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"))
+                                {
+                                    FileDownloadName = "images.zip"
+                                };
+                            }
+                        }
                     }
                 }
 
